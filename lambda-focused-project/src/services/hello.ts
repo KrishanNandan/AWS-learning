@@ -1,5 +1,4 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
-import { v4 } from "uuid";
+import { type APIGatewayProxyEvent, type APIGatewayProxyResult, type Context } from "aws-lambda";
 import { S3Client, ListBucketsCommand } from "@aws-sdk/client-s3";
 
 const s3Client = new S3Client({})

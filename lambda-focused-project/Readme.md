@@ -12,5 +12,8 @@ We have to make sure that we do proper tree shaking and convert ts code to js co
 ## Solution
 NodeJsFunction CDK construct (uses esbuild library under the hood)(aws-lambda-nodejs)
 
-awsCdk(cloud devlopment kit)- to create resources and infrastructure, inpast it was monolith(all in one), now with v3 every resource have their own package
-awsSdk(software devlopment kit)- To access other aws resources from our account, earlier each resource were in different packages now all in one i.e. following monolith architecture.
+## Sequence diagram - Infrastructure synthesis / deploy
+![alt text](image.png)
+
+## Sequence diagram - Runtime request flow
+![alt text](image-1.png)
