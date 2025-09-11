@@ -1,4 +1,4 @@
-import { Stack, Fn } from "aws-cdk-lib";
+import { type Stack, Fn } from "aws-cdk-lib";
 
 export function getSuffixFromStack(stack: Stack) {
     const shortStackId = Fn.select(2, Fn.split("/", stack.stackId));
