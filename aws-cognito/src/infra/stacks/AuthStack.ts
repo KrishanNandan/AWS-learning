@@ -45,3 +45,7 @@ export class AuthStack extends Stack {
         });
     }
 }
+
+/**command to activate user from confirmation status- Force change password to confirmed
+ * aws cognito-idp admin-set-user-password --user-pool-id userPoolId --username UserName --password "password of user in quote" --permanent
+*/
