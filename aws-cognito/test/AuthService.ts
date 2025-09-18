@@ -1,13 +1,12 @@
 import { Amplify } from "aws-amplify";
 import { SignInOutput, fetchAuthSession, signIn } from "@aws-amplify/auth";
 
-const awsRegion = 'ap-south-1';
 
 Amplify.configure({
     Auth: {
         Cognito: {
-            userPoolId: 'userPoolId',
-            userPoolClientId: 'userPoolClientId'
+            userPoolId: 'ap-south-1_RnArfbX1j',
+            userPoolClientId: '44m4jbeahne3na5i8gmk71mv63'
         }
     }
 });
@@ -18,7 +17,7 @@ export class AuthService {
             username: userName,
             password: password,
             options: {
-                authFlowType: 'USER_PASSWORD_AUTH'
+                authFlowType: 'USER_PASSWORD_AUTH',
             }
         })
         return SignInOutput;
