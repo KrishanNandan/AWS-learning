@@ -1,5 +1,6 @@
 import { CfnOutput, Stack, StackProps } from 'aws-cdk-lib';
-import { CfnIdentityPool, CfnUserPoolGroup, UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
+import { CfnIdentityPool, CfnIdentityPoolRoleAttachment, CfnUserPoolGroup, UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
+import { Effect, FederatedPrincipal, PolicyStatement, Role } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 
 
@@ -7,13 +8,18 @@ export class AuthStack extends Stack {
     public userPool: UserPool;
     private identityPool: CfnIdentityPool;
     private userPoolClient: UserPoolClient;
+    private authenticatedRole: Role;
+    private unAuthenticatedRole: Role;
+    private adminRole: Role;
 
     constructor(scope: Construct, id: string, props?: StackProps) {
         super(scope, id, props);
         this.createUserPool();
         this.createUserPoolClient();
-        this.createAdminsGroup();
         this.createIdentityPool();
+        this.createRoles();
+        this.attachRoles();
+        this.createAdminsGroup();
     }
     private createUserPool() {
         this.userPool = new UserPool(this, 'SpaceUserPool', {
@@ -49,7 +55,11 @@ export class AuthStack extends Stack {
         });
     }
     private createAdminsGroup() {
-        new CfnUserPoolGroup(this, 'SpaceAdmins', { userPoolId: this.userPool.userPoolId, groupName: 'admins' })
+        new CfnUserPoolGroup(this, 'SpaceAdmins', {
+            userPoolId: this.userPool.userPoolId,
+            groupName: 'admins',
+            roleArn: this.adminRole.roleArn
+        })
     }
     private createIdentityPool() {
         this.identityPool = new CfnIdentityPool(this, 'SpaceIdentityPool', {
@@ -59,9 +69,76 @@ export class AuthStack extends Stack {
                 providerName: this.userPool.userPoolProviderName
             }]
         });
-        new CfnOutput(this, 'SpaceIdentityPoolId', {
-            value: this.identityPool.ref
+
+    }
+    /**In this method we are only creating IAM roles not attaching it to identity pool best example will be of Admin role which have been created here but
+     * it is attached to user pool group, also it is an example of how to attach policy to a role
+    */
+    private createRoles() {
+        /**For authenticated role */
+        this.authenticatedRole = new Role(this, 'CognitoDefaultAuthenticatedRole', {
+            assumedBy: new FederatedPrincipal('cognito-identity.amazonaws.com',
+                {
+                    StringEquals: {
+                        "cognito-identity.amazonaws.com:aud": this.identityPool.ref
+                    },
+                    'ForAnyValue:StringLike': {
+                        "cognito-identity.amazonaws.com:amr": "authenticated"
+                    }
+                },
+                'sts:AssumeRoleWithWebIdentity'
+            )
         });
+
+        /**For unauthenticated role */
+        this.unAuthenticatedRole = new Role(this, 'CognitoDefaultUnauthenticatedRole', {
+            assumedBy: new FederatedPrincipal('cognito-identity.amazonaws.com', {
+                StringEquals: {
+                    "cognito-identity.amazonaws.com:aud": this.identityPool.ref
+                },
+                'ForAnyValue:StringLike': {
+                    "cognito-identity.amazonaws.com:amr": "unauthenticated"
+                }
+            },
+                'sts:AssumeRoleWithWebIdentity'
+            )
+        })
+
+        /**For admin role */
+        this.adminRole = new Role(this, 'CognitoDefaultAdminRole', {
+            assumedBy: new FederatedPrincipal('cognito-identity.amazonaws.com', {
+                StringEquals: {
+                    "cognito-identity.amazonaws.com:aud": this.identityPool.ref
+                },
+                'ForAnyValue:StringLike': {
+                    "cognito-identity.amazonaws.com:amr": "authenticated"
+                }
+            },
+                'sts:AssumeRoleWithWebIdentity'
+            )
+        });
+
+        this.adminRole.addToPolicy(new PolicyStatement({
+            effect: Effect.ALLOW,
+            actions: ['s3:ListAllMyBuckets'],
+            resources: ['*']
+        }));
+    }
+    private attachRoles() {
+        new CfnIdentityPoolRoleAttachment(this, 'RolesAttachment', {
+            identityPoolId: this.identityPool.ref,
+            roles: {
+                'authenticated': this.authenticatedRole.roleArn,
+                'unauthenticated': this.unAuthenticatedRole.roleArn
+            },
+            roleMappings: {
+                adminsMapping: {
+                    type: 'Token',
+                    ambiguousRoleResolution: 'AuthenticatedRole',
+                    identityProvider: `${this.userPool.userPoolProviderName}:${this.userPoolClient.userPoolClientId}`
+                }
+            }
+        })
     }
 }
 
