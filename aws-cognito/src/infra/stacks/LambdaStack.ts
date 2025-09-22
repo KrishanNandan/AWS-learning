@@ -5,7 +5,8 @@ import { join } from 'path';
 import { LambdaIntegration } from 'aws-cdk-lib/aws-apigateway';
 import { ITable } from 'aws-cdk-lib/aws-dynamodb';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { Role, ServicePrincipal, ManagedPolicy, Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+
 
 interface LambdaStackProps extends StackProps {
     spacesTable: ITable;
@@ -13,13 +14,16 @@ interface LambdaStackProps extends StackProps {
 
 export class LambdaStack extends Stack {
     public readonly lambdaIntegration: LambdaIntegration;
+    // private helloLambdaRole: Role;
     constructor(scope: Construct, id: string, props: LambdaStackProps) {
         super(scope, id);
+        // this.createAttachRole();
         const helloLambda = new NodejsFunction(this, 'HelloHandler', {
             runtime: Runtime.NODEJS_22_X,
             handler: 'handler',
             entry: join(__dirname, '..', '..', 'services', 'hello.ts'),
-            environment: { TABLE_NAME: props.spacesTable.tableName }
+            environment: { TABLE_NAME: props.spacesTable.tableName },
+            // role: this.helloLambdaRole
         });
         helloLambda.addToRolePolicy(new PolicyStatement({
             effect: Effect.ALLOW,
@@ -28,4 +32,18 @@ export class LambdaStack extends Stack {
         }))
         this.lambdaIntegration = new LambdaIntegration(helloLambda);
     }
+    // private createAttachRole() {
+    //     this.helloLambdaRole = new Role(this, 'HelloHandlerRole', {
+    //         assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
+    //         managedPolicies: [
+    //             ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole') // CloudWatch Logs
+    //         ],
+    //     });
+    //     // Add function-specific permissions (tighten resources where possible)
+    //     this.helloLambdaRole.addToPolicy(new PolicyStatement({
+    //         effect: Effect.ALLOW,
+    //         actions: ["s3:*","s3-object-lambda:*"], // will allow everything
+    //         resources: ['*'],
+    //     }));
+    // }
 }
