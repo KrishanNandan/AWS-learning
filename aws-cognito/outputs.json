@@ -1,0 +1,16 @@
+{
+  "DataStack": {
+    "ExportsOutputRefSpacesTable8A9973559FB4B87D": "Spaces06b3fb691d19"
+  },
+  "LambdaStack": {
+    "ExportsOutputFnGetAttHelloHandler2E4FBA4DArnD401A6FD": "arn:aws:lambda:ap-south-1:679446432979:function:LambdaStack-HelloHandler2E4FBA4D-VFfWIey7pZmO"
+  },
+  "AuthStack": {
+    "ExportsOutputFnGetAttSpaceUserPool6AB542DCArnC2E21F85": "arn:aws:cognito-idp:ap-south-1:679446432979:userpool/ap-south-1_RnArfbX1j",
+    "SpaceUserPoolId": "ap-south-1_RnArfbX1j",
+    "SpaceUserPoolClientId": "44m4jbeahne3na5i8gmk71mv63"
+  },
+  "ApiStack": {
+    "SpaceFinderApiEndpoint2EFB5B06": "https://k5fl1xtm96.execute-api.ap-south-1.amazonaws.com/prod/"
+  }
+}
