@@ -1,6 +1,6 @@
-import { Stack, type StackProps } from 'aws-cdk-lib';
+import { Duration, Stack, type StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Runtime, Tracing } from 'aws-cdk-lib/aws-lambda';
 import { join } from 'path';
 import { LambdaIntegration } from 'aws-cdk-lib/aws-apigateway';
 import { ITable } from 'aws-cdk-lib/aws-dynamodb';
@@ -23,6 +23,8 @@ export class LambdaStack extends Stack {
             handler: 'handler',
             entry: join(__dirname, '..', '..', 'services', 'hello.ts'),
             environment: { TABLE_NAME: props.spacesTable.tableName },
+            tracing:Tracing.ACTIVE, /**To allow x-ray we are making this option as active*/
+            timeout:Duration.minutes(1) /** default time for lambda is 3 seconds*/
             // role: this.helloLambdaRole
         });
         helloLambda.addToRolePolicy(new PolicyStatement({
